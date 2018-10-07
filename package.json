@@ -20,6 +20,9 @@
     "prepublish": "npm run test && uglifyjs build/d3-barcodetree.js -c -m -o build/d3-barcodetree.min.js",
     "postpublish": "zip -j build/d3-barcodetree.zip -- LICENSE README.md build/d3-barcodetree.js build/d3-barcodetree.min.js"
   },
+  "dependencies": {
+    "d3-array": "1"
+  },
   "devDependencies": {
     "rollup": "0.27",
     "tape": "4",

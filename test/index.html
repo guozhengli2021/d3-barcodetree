@@ -1,13 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title></title>
+	<title>BarcodeTree Library Test</title>
 </head>
 <body>
+	<div id = "barcodetree-div">
+		<svg id = "barcodetree-svg">
+			<g class = "container">
+			</g>
+		</svg>
+	</div>
+	<script type="text/javascript" src="./d3.v4.js"></script>
+	<script type="text/javascript" src="./d3-array.js"></script>
 	<script type="text/javascript" src="../build/d3-barcodetree.js"></script>
 	<script type="text/javascript">
-		var value = d3.barcodetree()
-		console.log('value', value)
+		var barcodetree = d3.barcodetree()
+		var treeData = {
+			"name": "eve",
+			"value": 12,
+			"children": [
+			    {
+			      "name": "cain",
+			      "value": 2
+			    },
+			    {
+			      "name": "seth",
+			      "value": 4,
+			      "children": [
+			        {
+			          "name": "enos",
+			          "value": 3
+			        },
+			        {
+			          "name": "noam",
+			          "value": 1
+			        }
+			      ]
+			    },
+			    {
+			      "value": 3,
+			      "name": "abel"
+			    },
+			    {
+			      "name": "awan",
+			      "value": 1,
+			      "children": [
+			        {
+			          "name": "enoch",
+			          "value": 1
+			        }
+			      ]
+			    },
+			    {
+			      "value": 2,
+			      "name": "azura"
+			    }
+			  ]
+			}
+		// there are restrict for the input data, including the node object should include the node depth
+		treeData = add_depth(treeData)
+		var svg = document.getElementById('barcodetree-svg')
+		// var svg = d3.select('#barcodetree-svg')
+		barcodetree(svg, treeData)
+		// var svg = document.getElementById('barcodetree-svg')
+		// console.log('svg', svg)
+		// console.log('treeData', treeData)
+		// d3.select(svg)
+		// 	.data(treeData)
+		// 	.call(barcodetree)
+		function add_depth(treeData) {
+			var initDepth = 0
+			inner_add_depth(treeData, initDepth)
+			return treeData
+			function inner_add_depth(treeData, depth){
+				treeData.depth = depth
+				var children = treeData.children
+				if(typeof(children) !== 'undefined'){
+					depth = depth + 1
+					for(var cI = 0;cI < children.length;cI++){
+						var child = children[cI]
+						inner_add_depth(child, depth)
+					}
+				}
+			}
+		}
 	</script>
 </body>
 </html>
