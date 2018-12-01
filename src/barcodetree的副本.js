@@ -1,40 +1,38 @@
 import {extent, max} from "d3-array";
 
-//  the parameters of the BarcodeTree
-var bctNodeHeight = 40,
-    bctNodeWidth = 10,
-    bctRootNodeWidth = 20,
-    bctLeafNodeWidth = 2,
-    bctLevelAttrArray = [], // the attribute value encoding the node depth, for BCT_W, it is node width; for BCT_H, it is node height
-    bctLevelDisplayArray = [], // the attribute value to determine whether to show the BCT nodes
-    bctNodeWidthArray = [],
-    bctNodeHeightArray = [],
-    bctNodeArray = [], //  the arrary for the barcodeTree nodes
-    bctElementArray = [],
-    collapsedArray = [],
-    spacing = 5,
-    maxHeight = 0,
-    maxWidth = 0,
-    triangleMaxWidth = 0, 
-    triangleMaxHeight = 0,
-    triangleWidthScale = {},
-    triangleHeightScale = {},
-    bctNodeColor = "black",
-    structureCueSpacing = bctNodeHeight * 0.05,
-    structureCueHeight = bctNodeHeight * 0.1,
-    structureCueStroke = bctNodeHeight * 0.025,
-    colourScheme = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"],
-    barcodeTreeType = 'bct_w', // 'bct_w' or "bct_h"
-    valueEncoding = 'color', // 'null' or 'color' or 'height'
-    descendantSegment = true, // the structure cue of the descendants nodes are segmented or not
-    barcodetreeG = null,
-    transitionDuration = 1000,
-    dataset = null
-var hoveringTrigger = function(){}
-var unhoveringTrigger = function(){}
-var clickTrigger = function(){}
-
 export default function() {
+    //  the parameters of the BarcodeTree
+    var bctNodeHeight = 40,
+        bctNodeWidth = 10,
+        bctRootNodeWidth = 20,
+        bctLeafNodeWidth = 2,
+        bctLevelAttrArray = [], // the attribute value encoding the node depth, for BCT_W, it is node width; for BCT_H, it is node height
+        bctLevelDisplayArray = [], // the attribute value to determine whether to show the BCT nodes
+        bctNodeWidthArray = [],
+        bctNodeHeightArray = [],
+        bctNodeArray = [], //  the arrary for the barcodeTree nodes
+        bctElementArray = [],
+        collapsedArray = [],
+        spacing = 5,
+        maxHeight = 0,
+        maxWidth = 0,
+        triangleMaxWidth = 0, 
+        triangleMaxHeight = 0,
+        triangleWidthScale = {},
+        triangleHeightScale = {},
+        bctNodeColor = "black",
+        structureCueSpacing = bctNodeHeight * 0.05,
+        structureCueHeight = bctNodeHeight * 0.1,
+        structureCueStroke = bctNodeHeight * 0.025,
+        colourScheme = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"],
+        barcodeTreeType = 'bct_w', // 'bct_w' or "bct_h"
+        valueEncoding = 'color', // 'null' or 'color' or 'height'
+        descendantSegment = true, // the structure cue of the descendants nodes are segmented or not
+        barcodetreeG = null,
+        transitionDuration = 1000
+    var hoveringTrigger = function(){}
+    var unhoveringTrigger = function(){}
+    var clickTrigger = function(){}
     /*
      * dispatch the click and dbclick event
      */
@@ -108,7 +106,7 @@ export default function() {
     /*
      * the function to render the barcodetree
      */
-    function barcodetree(selection, paras) {
+    function barcodetree(selection, dataset) {
         if ((selection == null) || (typeof(selection) === 'undefined')) {
             console.log('barcodetree')
             return
@@ -122,65 +120,46 @@ export default function() {
         } else {
             barcodetreeG = svg.select('.container')
         }
-        if (dataset == null) {
-             return 0
+        compute_triangle_attr(dataset)
+        bctElementArray = dfs(dataset)
+        //  compute the maximum attribute of the triangle
+        for (var bI = 0;bI < bctElementArray.length;bI++) {
+            var t_obj = bctElementArray[bI].t_obj
+            var t_height = t_obj.t_height
+            var t_width = t_obj.t_width
+            if (triangleMaxWidth < t_width) {
+                triangleMaxWidth = t_width
+            }
+            if (triangleMaxHeight < t_height) {
+                triangleMaxHeight = t_height
+            }
         }
-        //  only the paras is 'create', then the data will be updated
-        if (paras === 'create') {
-            compute_triangle_attr(dataset)
-            bctElementArray = dfs(dataset)
-            //  compute the maximum attribute of the triangle
-            for (var bI = 0;bI < bctElementArray.length;bI++) {
-                var t_obj = bctElementArray[bI].t_obj
-                var t_height = t_obj.t_height
-                var t_width = t_obj.t_width
-                if (triangleMaxWidth < t_width) {
-                    triangleMaxWidth = t_width
-                }
-                if (triangleMaxHeight < t_height) {
-                    triangleMaxHeight = t_height
-                }
-            }
-            var nodeDepthRange = d3.extent(bctElementArray, function(obj){
-                return +obj.depth
-            })
-            //  setting the variables about whether to show the nodes at different levels of BCT
-            //  if the variable bctLevelDisplayArray are empty, then the nodes of every level show be displayed
-            if (bctLevelDisplayArray.length === 0) {
-                for (var dI = nodeDepthRange[0]; dI <= nodeDepthRange[1]; dI++) {
-                    bctLevelDisplayArray.push(true)
-                }
-            }
-            for (var bI = 0; bI < bctElementArray.length; bI++) {
-                bctElementArray[bI].collapse_display = true
-            }
-        } 
-        //  when the paras is "update", render the barcodeTree directly
-        //  setting the variable “display” about whether to show the nodes
-        for (var bI = 0; bI < bctElementArray.length; bI++) {
-            bctElementArray[bI].level_display = bctLevelDisplayArray[bctElementArray[bI].depth]
-        }            
         //  compute the scale of the triangle width and height
         triangleWidthScale = d3.scaleLinear().domain([0, triangleMaxWidth]).range([0, bctRootNodeWidth])
         triangleHeightScale = d3.scaleLinear().domain([0, triangleMaxHeight]).range([0, bctNodeHeight / 5])
+        var nodeDepthRange = d3.extent(bctElementArray, function(obj){
+            return +obj.depth
+        })
+        //  setting the variables about whether to show the nodes at different levels of BCT
+        //  if the variable bctLevelDisplayArray are empty, then the nodes of every level show be displayed
+        if (bctLevelDisplayArray.length === 0) { 
+            for (var dI = nodeDepthRange[0]; dI <= nodeDepthRange[1]; dI++) {
+                bctLevelDisplayArray.push(true)
+            }
+        }
+        //  setting the variable “display” about whether to show the nodes
+        for (var bI = 0; bI < bctElementArray.length; bI++) {
+            bctElementArray[bI].display = bctLevelDisplayArray[bctElementArray[bI].depth]
+        }
         //  the function to layout the nodes of BarcodeTree        
         bctNodeArray = layout_barcodetree()
         //  the function to render the BarcodeTree
         render_barcodetree(bctNodeArray)
+        //  更新在barcodeTree的节点下方的triangle的位置
         update_triangle()
         var maxX = compute_max_x(bctNodeArray)
         return maxX
     }
-    //  for the same data, only update the style of the BarcodeTree nodes
-    function update_barcodetree(selection) {
-        //  the function to layout the nodes of BarcodeTree        
-        bctNodeArray = layout_barcodetree()
-        //  the function to render the BarcodeTree
-        render_barcodetree(bctNodeArray)
-        update_triangle()
-        var maxX = compute_max_x(bctNodeArray)
-        return maxX
-    }   
     //  compute the triangle attribute of the collapsed subtree
     function compute_triangle_attr(dataset) {
         dataset.t_obj = traversal_dataset(dataset)
@@ -231,7 +210,6 @@ export default function() {
             if (bctLevelAttrArray.length === 0) { // 当用户没有指定映射深度属性的数组中的数值时，需要计算得到；否则使用用户指定的属性数值
                 bctLevelAttrArray = bct_width_array(bctRootNodeWidth, bctLeafNodeWidth, nodeDepthRange)                    
             }
-            console.log('bctNodeHeight', bctNodeHeight)
             bctNodeArray = bct_w_encode(bctElementArray, bctLevelAttrArray, bctNodeHeight, spacing, valueScale, colorScale, valueEncoding)
         } else if(barcodeTreeType === 'bct_h') {
             if (bctLevelAttrArray.length === 0) { // 当用户没有指定映射深度属性的数组中的数值时，需要计算得到；否则使用用户指定的属性数值
@@ -243,141 +221,138 @@ export default function() {
     }
     //  render barcodeTree
     function render_barcodetree(bctNodeArray) {
-            //  get the object to control the dbclick and click
-            var cc = clickcancel()
-            var barcodeTreeNodesG = barcodetreeG.selectAll('.barcodetree-node-g')
-                .data(bctNodeArray)
-            barcodeTreeNodesG.enter()
-                .append('g')
-                .attr('class', 'barcodetree-node-g')
-                .attr('id', function(d) {
-                    return d.name
-                })
-                .attr('transform', function(d, i){
-                    return 'translate(' + d.x + ',' + d.y + ')'
-                })
-                .append('rect')
-                .attr('class', function(d, i) {
-                    var barcodeTreeNodeClass = 'barcodetree-node'
-                    if (typeof(d.existed) !== 'undefined') {
-                        if (!d.existed) {
-                            barcodeTreeNodeClass = barcodeTreeNodeClass + ' non-existed'
-                        }
-                    }
-                    return barcodeTreeNodeClass
-                })            
-                .attr('id', function(d) {
-                    return d.name
-                })
-                .attr('width', function(d) {
-                    if (!((d.collapse_display) && (d.level_display))) {
-                        return 0
-                    }
-                    return d.width
-                })
-                .attr('height', function(d) {
-                    return d.height
-                })
-                .attr('fill', function(d) {
-                    //  if the existed attribute is false => the fill of the nodes is white
-                    if (typeof(d.existed) !== 'undefined') {
-                        if (!d.existed) {
-                            return 'white'
-                        }
-                    }
-                    return d.color
-                })
-                .style('stroke', function(d) {
-                    return bctNodeColor
-                })
-                .style('stroke-width', function(d) {
-                    //  if the existed attribute is false => the stroke width of the nodes is d.width / 5
-                    if (typeof(d.existed) !== 'undefined') {
-                        if (!d.existed) {
-                            var strokeWidth = d.width / 5 > 1 ? 1 : d.width / 5
-                            return strokeWidth
-                        }
-                    }
-                    //  if the existed attribute of the node is true => the stroke width of the nodes is 0
-                    return 0
-                })
-                .on('mouseover', function(d, i) {
-                    add_descendant_structure_cue(d, i, bctNodeArray)
-                    add_ancestor_structure_cue(d, i, bctNodeArray)
-                    add_sibling_structure_cue(d, i, bctNodeArray)
-                })
-                .on('mouseout', function(d, i) {
-                    remove_structure_cue()
-                })
-                .call(cc)
-            barcodeTreeNodesG.transition()
-                .duration(transitionDuration)
-                .attr('transform', function(d) {
-                    return 'translate(' + d.x + ',' + d.y + ')'
-                })      
-            barcodeTreeNodesG.exit().remove()
-            /**
-             * update the node style of BarcodeTree
-             */
-            var barcodeTreeNodes = barcodetreeG.selectAll('.barcodetree-node')
-                .data(bctNodeArray)
-            barcodeTreeNodes.transition()
-                .duration(transitionDuration)
-                .attr('width', function(d) {
-                    if (!((d.collapse_display) && (d.level_display))) {
-                        return 0
-                    }
-                    return d.width
-                })
-                .attr('height', function(d) {
-                    return d.height
-                })
-                .attr('fill', function(d) {
-                    //  if the existed attribute is false => the fill of the nodes is white
-                    if (typeof(d.existed) !== 'undefined') {
-                        if (!d.existed) {
-                            return 'white'
-                        }
-                    }
-                    return d.color
-                })
-                .style('stroke', function(d) {
-                    return bctNodeColor
-                })
-                .style('stroke-width', function(d) {
-                    //  if the existed attribute is false => the stroke width of the nodes is d.width / 5
-                    if (typeof(d.existed) !== 'undefined') {
-                        if (!d.existed) {
-                            var strokeWidth = d.width / 5 > 1 ? 1 : d.width / 5
-                            return strokeWidth
-                        }
-                    }
-                    //  if the existed attribute of the node is true => the stroke width of the nodes is 0
-                    return 0
-                })
-                .each(function(d, i) {
-                    var nodeName = d.name
-                    //  if the display attribute of the nodes is false => hide the triangle on the bottom of the node
-                    if (!((d.collapse_display) && (d.level_display))) {
-                        barcodetreeG.select('#triangle-' + nodeName)
-                            .remove()
-                        var bctNodeNameIndex = collapsedArray.indexOf(nodeName)
-                        if (bctNodeNameIndex !== -1) {
-                            collapsedArray.splice(bctNodeNameIndex, 1)
-                        }
-                    }
-                })
-            barcodeTreeNodes.exit().remove()
-            //  the event for click and dblclick
-            cc.on('click', function() {
-                console.log('click')
-                clickTrigger()
+        //  get the object to control the dbclick and click
+        var cc = clickcancel()
+        var barcodeTreeNodesG = barcodetreeG.selectAll('.barcodetree-node-g')
+            .data(bctNodeArray)
+        barcodeTreeNodesG.enter()
+            .append('g')
+            .attr('class', 'barcodetree-node-g')
+            .attr('id', function(d) {
+                return d.name
             })
-            cc.on('dblclick', function(d, i) {
-                console.log('dblclick')
-                console.log('d', d)
-                dblclick(d, i)
+            .attr('transform', function(d, i){
+                return 'translate(' + d.x + ',' + d.y + ')'
             })
+            .append('rect')
+            .attr('class', function(d, i) {
+                var barcodeTreeNodeClass = 'barcodetree-node'
+                if (typeof(d.existed) !== 'undefined') {
+                    if (!d.existed) {
+                        barcodeTreeNodeClass = barcodeTreeNodeClass + ' non-existed'
+                    }
+                }
+                return barcodeTreeNodeClass
+            })            
+            .attr('id', function(d) {
+                return d.name
+            })
+            .attr('width', function(d) {
+                if (!d.display) {
+                    return 0
+                }
+                return d.width
+            })
+            .attr('height', function(d) {
+                return d.height
+            })
+            .attr('fill', function(d) {
+                //  if the existed attribute is false => the fill of the nodes is white
+                if (typeof(d.existed) !== 'undefined') {
+                    if (!d.existed) {
+                        return 'white'
+                    }
+                }
+                return d.color
+            })
+            .style('stroke', function(d) {
+                return bctNodeColor
+            })
+            .style('stroke-width', function(d) {
+                //  if the existed attribute is false => the stroke width of the nodes is d.width / 5
+                if (typeof(d.existed) !== 'undefined') {
+                    if (!d.existed) {
+                        var strokeWidth = d.width / 5 > 1 ? 1 : d.width / 5
+                        return strokeWidth
+                    }
+                }
+                //  if the existed attribute of the node is true => the stroke width of the nodes is 0
+                return 0
+            })
+            .on('mouseover', function(d, i) {
+                add_descendant_structure_cue(d, i, bctNodeArray)
+                add_ancestor_structure_cue(d, i, bctNodeArray)
+                add_sibling_structure_cue(d, i, bctNodeArray)
+            })
+            .on('mouseout', function(d, i) {
+                remove_structure_cue()
+            })
+            .call(cc)
+        barcodeTreeNodesG.transition()
+            .duration(transitionDuration)
+            .attr('transform', function(d) {
+                return 'translate(' + d.x + ',' + d.y + ')'
+            })      
+        barcodeTreeNodesG.exit().remove()
+        /**
+         * update the node style of BarcodeTree
+         */
+        var barcodeTreeNodes = barcodetreeG.selectAll('.barcodetree-node')
+            .data(bctNodeArray)
+        barcodeTreeNodes.transition()
+            .duration(transitionDuration)
+            .attr('width', function(d) {
+                if (!d.display) {
+                    return 0
+                }
+                return d.width
+            })
+            .attr('height', function(d) {
+                return d.height
+            })
+            .attr('fill', function(d) {
+                //  if the existed attribute is false => the fill of the nodes is white
+                if (typeof(d.existed) !== 'undefined') {
+                    if (!d.existed) {
+                        return 'white'
+                    }
+                }
+                return d.color
+            })
+            .style('stroke', function(d) {
+                return bctNodeColor
+            })
+            .style('stroke-width', function(d) {
+                //  if the existed attribute is false => the stroke width of the nodes is d.width / 5
+                if (typeof(d.existed) !== 'undefined') {
+                    if (!d.existed) {
+                        var strokeWidth = d.width / 5 > 1 ? 1 : d.width / 5
+                        return strokeWidth
+                    }
+                }
+                //  if the existed attribute of the node is true => the stroke width of the nodes is 0
+                return 0
+            })
+            .each(function(d, i) {
+                var nodeName = d.name
+                //  if the display attribute of the nodes is false => hide the triangle on the bottom of the node
+                if (!d.display) {
+                    barcodetreeG.select('#triangle-' + nodeName)
+                        .remove()
+                    var bctNodeNameIndex = collapsedArray.indexOf(nodeName)
+                    if (bctNodeNameIndex !== -1) {
+                        collapsedArray.splice(bctNodeNameIndex, 1)
+                    }
+                }
+            })
+        barcodeTreeNodes.exit().remove()
+        //  the event for click and dblclick
+        cc.on('click', function() {
+            clickTrigger()
+        })
+        cc.on('dblclick', function(d, i) {
+            dblclick(d, i)
+        })
     }
     //  double click the nodes in BCT to collapse the subtree, double click the nodes will stretch the subtree
     function dblclick(d, i) {
@@ -394,10 +369,10 @@ export default function() {
             //  when the attribute of barcodeTree node is true => it will change to false
             if (bctNodeNameIndex === -1) {
                 //  if the descendants of this node is not collapsed, then change the display attribute to false
-                bctNodeArray[bI].collapse_display = false
+                bctNodeArray[bI].display = false
             } else {
                 //  if the descendants of this node is collapsed, then change the display attribute to true
-                bctNodeArray[bI].collapse_display = true
+                bctNodeArray[bI].display = true
             }
         }
         if (bctNodeNameIndex === -1) {
@@ -425,6 +400,7 @@ export default function() {
         var t_obj = bctNodeObj.t_obj
         var tHeight = triangleHeightScale(t_obj.t_height)
         var tWidth = triangleWidthScale(t_obj.t_width)
+
         barcodetreeG.select('.barcodetree-node-g#' + bctNodeSubtreeName)
             .append("polygon")
             .attr('class', 'triangle')
@@ -441,7 +417,6 @@ export default function() {
     }
     //  update the triangle on the bottom of the BarcodeTree node
     function update_triangle () {
-        console.log('update_triangle')
         barcodetreeG.selectAll('.triangle')
             .each(function(d, i) {
                 console.log('d', d)
@@ -477,7 +452,7 @@ export default function() {
             var maxX = bctNodeArray[bctNodeArray.length - 1].x + bctNodeArray[bctNodeArray.length - 1].width
             return maxX
         }
-    } 
+    }    
     //  remove all the structure cue when unhovering the nodes
     function remove_structure_cue(g) {
         barcodetreeG.selectAll('.structure-cue')
@@ -507,7 +482,6 @@ export default function() {
         var nodeDepth = nodeobj.depth
         var childNodeDepth = nodeDepth + 1
         var descendantStructureCueArray = []
-        console.log('bctNodeArray', bctNodeArray)
         if (descendantSegment) {
             // the structure cue of descendant nodes are segmented
             var childrenNodeArray = []
@@ -532,7 +506,7 @@ export default function() {
                     }                  
                     break
                 }
-                if ((barcodeTreeNode.collapse_display) && (barcodeTreeNode.level_display)) {
+                if (barcodeTreeNode.display) {
                     childrenNodeArray.push(barcodeTreeNode)
                 } 
             }
@@ -546,7 +520,7 @@ export default function() {
             //  the structure cue of the children nodes are not segmented
             var descendantNodeArray = []
             for (var bI = (index + 1); bI < bctNodeArray.length; bI++) { 
-                if ((bctNodeArray[bI].collapse_display) && (barcodeTreeNode.level_display)) {
+                if (bctNodeArray[bI].display) {
                     descendantNodeArray.push(bctNodeArray[bI])
                 }             
                 //  only get the descendant nodes of the hovering items
@@ -586,8 +560,8 @@ export default function() {
         var findNodeDepth = nodeobj.depth
         var ancestorStructureCueArray = []
         for (var bI = index; bI >= 0; bI--) {
-            var nodeObj = bctNodeArray[bI] 
-            if((nodeObj.depth == findNodeDepth) && (nodeObj.collapse_display) && (nodeObj.level_display)) {
+            var nodeObj = bctNodeArray[bI]
+            if((nodeObj.depth == findNodeDepth) && (nodeObj.display)) {
                 var ancestorNodeArray = [nodeObj]
                 var ancestorStructureCue = compute_structure_cue_range(ancestorNodeArray)
                 ancestorStructureCueArray.push(ancestorStructureCue)
@@ -623,8 +597,8 @@ export default function() {
         //  to avoid dulicate the hovering nodes in the sibling nodes, 
         //  the first traversal starts from index, and ascendant to bctNodeArray.length
         for (var bI = index;bI < bctNodeArray.length;bI++) {
-            var barcodeNode = bctNodeArray[bI] 
-            if ((barcodeNode.depth === nodeDepth) && (barcodeNode.collapse_display) && (barcodeNode.level_display)) {
+            var barcodeNode = bctNodeArray[bI]
+            if ((barcodeNode.depth === nodeDepth) && (barcodeNode.display)) {
                 var siblingStructureCue = compute_sibling_structure_cue_x(barcodeNode)
                 siblingStructureCueArray.push(siblingStructureCue)
             }
@@ -635,7 +609,7 @@ export default function() {
         //  the second traversal starts from the (index - 1), and descendant to 0
         for (var bI = (index - 1);bI >= 0;bI--) {
             var barcodeNode = bctNodeArray[bI]
-            if ((barcodeNode.depth === nodeDepth) && (barcodeNode.collapse_display) && (barcodeNode.level_display)) {
+            if ((barcodeNode.depth === nodeDepth) && (barcodeNode.display)) {
                 var siblingStructureCue = compute_sibling_structure_cue_x(barcodeNode)
                 siblingStructureCueArray.push(siblingStructureCue)
             }
@@ -706,7 +680,7 @@ export default function() {
                 element.height = valueScale(elementValue) * height
                 element.y = height - element.height
             }
-            if ((bctLevelDisplayArray[elementDepth]) && (element.collapse_display) && (element.level_display)) { 
+            if ((bctLevelDisplayArray[elementDepth]) && (element.display)) {
                 xValue = xValue + element.width + spacing                
             }
         }
@@ -728,7 +702,7 @@ export default function() {
             if (valueEncoding === 'color') {
                 element.color = colorScale(valueScale(elementValue))
             }
-            if ((bctLevelDisplayArray[elementDepth]) && (element.collapse_display) && (element.level_display)) {
+            if ((bctLevelDisplayArray[elementDepth]) && (element.display)) {
                 xValue = xValue + element.width + spacing                
             }
         }
@@ -955,16 +929,6 @@ export default function() {
             return
         }
         bctLevelDisplayArray = value
-        return barcodetree
-    }
-    //  this variable controls the original data of BCT
-    barcodetree.dataset = function(value) {
-        if (!arguments.length) return dataset
-        if (typeof (value) !== 'object') {
-            console.warn('invalid value for bctLevelDisplayArray', dataset)
-            return
-        }
-        dataset = value
         return barcodetree
     }
     return barcodetree
