@@ -1,0 +1,152 @@
+{
+ "name": "flare",
+ "children": [
+  {
+   "name": "analytics",
+   "children": [
+    {
+     "name": "cluster",
+     "children": [
+      {"name": "AgglomerativeCluster", "value": 3938},
+      {"name": "CommunityStructure", "value": 3812},
+      {"name": "HierarchicalCluster", "value": 6714},
+      {"name": "MergeEdge", "value": 743}
+     ]
+    },
+    {
+     "name": "graph",
+     "children": [
+      {"name": "BetweennessCentrality", "value": 3534},
+      {"name": "LinkDistance", "value": 5731}
+     ]
+    },
+    {
+     "name": "optimization",
+     "children": [
+      {"name": "AspectRatioBanker", "value": 7074}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "animate",
+   "children": [
+    {"name": "Easing", "value": 17010},
+    {"name": "FunctionSequence", "value": 5842},
+    {
+     "name": "interpolate",
+     "children": [
+      {"name": "ArrayInterpolator", "value": 1983},
+      {"name": "ColorInterpolator", "value": 2047},
+      {"name": "DateInterpolator", "value": 1375},
+      {"name": "Interpolator", "value": 8746}
+     ]
+    },
+    {"name": "ISchedulable", "value": 1041},
+    {"name": "Parallel", "value": 5176}
+   ]
+  },
+  {
+   "name": "vis",
+   "children": [
+    {
+     "name": "axis",
+     "children": [
+      {"name": "Axes", "value": 1302},
+      {"name": "Axis", "value": 24593}
+     ]
+    },
+    {
+     "name": "controls",
+     "children": [
+      {"name": "AnchorControl", "value": 2138},
+      {"name": "ControlList", "value": 4665}
+     ]
+    },
+    {
+     "name": "data",
+     "children": [
+      {"name": "Data", "value": 20544},
+      {"name": "NodeSprite", "value": 19382},
+      {
+       "name": "render",
+       "children": [
+        {"name": "ArrowType", "value": 698},
+        {"name": "EdgeRenderer", "value": 5569},
+        {"name": "IRenderer", "value": 353},
+        {"name": "ShapeRenderer", "value": 2247}
+       ]
+      },
+      {"name": "ScaleBinding", "value": 11275},
+      {"name": "Tree", "value": 7147},
+      {"name": "TreeBuilder", "value": 9930}
+     ]
+    },
+    {
+     "name": "events",
+     "children": [
+      {"name": "DataEvent", "value": 2313},
+      {"name": "VisualizationEvent", "value": 1117}
+     ]
+    },
+    {
+     "name": "legend",
+     "children": [
+      {"name": "Legend", "value": 20859},
+      {"name": "LegendItem", "value": 4614},
+      {"name": "LegendRange", "value": 10530}
+     ]
+    },
+    {
+     "name": "operator",
+     "children": [
+      {
+       "name": "distortion",
+       "children": [
+        {"name": "BifocalDistortion", "value": 4461},
+        {"name": "Distortion", "value": 6314},
+        {"name": "FisheyeDistortion", "value": 3444}
+       ]
+      },
+      {
+       "name": "encoder",
+       "children": [
+        {"name": "ColorEncoder", "value": 3179},
+        {"name": "Encoder", "value": 4060},
+        {"name": "PropertyEncoder", "value": 4138},
+        {"name": "ShapeEncoder", "value": 1690},
+        {"name": "SizeEncoder", "value": 1830}
+       ]
+      },
+      {
+       "name": "filter",
+       "children": [
+        {"name": "FisheyeTreeFilter", "value": 5219},
+        {"name": "GraphDistanceFilter", "value": 3165},
+        {"name": "VisibilityFilter", "value": 3509}
+       ]
+      },
+      {"name": "IOperator", "value": 1286},
+      {
+       "name": "label",
+       "children": [
+        {"name": "Labeler", "value": 9956},
+        {"name": "RadialLabeler", "value": 3899},
+        {"name": "StackedAreaLabeler", "value": 3202}
+       ]
+      },
+      {
+       "name": "layout",
+       "children": [
+        {"name": "AxisLayout", "value": 6725},
+        {"name": "BundledEdgeRouter", "value": 3727}
+       ]
+      },
+      {"name": "Operator", "value": 2490}
+     ]
+    },
+    {"name": "Visualization", "value": 16540}
+   ]
+  }
+ ]
+}
