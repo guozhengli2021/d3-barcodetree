@@ -112,7 +112,8 @@
                 console.log('barcodetree')
                 return
             }
-            var svg = d3.select(selection)
+            // var svg = d3.select(selection)
+            var svg = selection
             //  if the container are not empty, 
             //  then we can append the g which has the class container
             if(svg.select('.container').empty()) {
@@ -167,6 +168,7 @@
             //  the function to render the BarcodeTree
             render_barcodetree(bctNodeArray)
             update_triangle()
+            console.log('bctNodeArray', bctNodeArray)
             var maxX = compute_max_x(bctNodeArray)
             return maxX
         }
@@ -963,6 +965,7 @@
                 console.warn('invalid value for bctLevelDisplayArray', dataset)
                 return
             }
+            console.log('value', value)
             dataset = value
             return barcodetree
         }

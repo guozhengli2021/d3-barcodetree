@@ -12,11 +12,12 @@
 	<script type="text/javascript" src="./d3-array.js"></script>
 	<script type="text/javascript" src="../build/d3-barcodetree.js"></script>
 	<script type="text/javascript">
-		var bctLevelAttrArray = [20, 5, 1]
+		var bctLevelAttrArray = [20, 10, 3]
 		var bctLevelDisplayArray = [true, true, true]
 		var barcodetree = d3.barcodetree()
 			.bctLevelAttrArray(bctLevelAttrArray)
 			.bctLevelDisplayArray(bctLevelDisplayArray)
+			.valueEncoding('height')
 		var treeData = {
 			"name": "eve",
 			"value": 12,
@@ -62,17 +63,16 @@
 		// there are restrict for the input data, including the node object should include the node depth
 		treeData = add_depth(treeData)
 		treeData = add_value(treeData)
-		console.log('treeData', treeData)
 		var svg = document.getElementById('barcodetree-svg')
 		// var svg = d3.select('#barcodetree-svg')
-		var maxX = barcodetree(svg, treeData)
-		console.log('maxX', maxX)
-		// var svg = document.getElementById('barcodetree-svg')
+		// var maxX = barcodetree(svg, treeData)
+		barcodetree.dataset(treeData)
+		// console.log('maxX', maxX)
+		var svg = document.getElementById('barcodetree-svg')
 		// console.log('svg', svg)
 		// console.log('treeData', treeData)
-		// d3.select(svg)
-		// 	.data(treeData)
-		// 	.call(barcodetree)
+		d3.select('#barcodetree-svg')
+			.call(barcodetree, 'create')
 		function add_depth(treeData) {
 			var initDepth = 0
 			inner_add_depth(treeData, initDepth)
